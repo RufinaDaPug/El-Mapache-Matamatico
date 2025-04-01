@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Práctica de Sumas y Restas - Mapaches</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Comic Sans MS, cursive, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-image: url('fondo_numeros_bosque.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            color: #ffffff;
+        }
+        h1 {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px #000000;
+            margin-bottom: 20px;
+        }
+        .mapache {
+            width: 50%; /* Tamaño reducido al 50% del original */
+            max-width: 200px; /* Máximo tamaño para pantallas más grandes */
+            height: auto;
+            display: block;
+            margin: 0 auto 20px auto;
+        }
+        .card {
+            width: 90%; /* Se adapta a pantallas pequeñas */
+            max-width: 300px; /* Máximo tamaño en pantallas grandes */
+            margin: 20px auto;
+            padding: 20px;
+            border: 3px solid #8c8c8c;
+            border-radius: 15px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333333;
+        }
+        .problem {
+            font-size: 24px; /* Tamaño más pequeño para móviles */
+            margin: 10px 0;
+        }
+        input {
+            font-size: 18px;
+            padding: 10px;
+            width: 80%; /* Ajuste dinámico en pantallas pequeñas */
+            border-radius: 10px;
+            border: 2px solid #cccccc;
+            margin-bottom: 10px;
+        }
+        button {
+            font-size: 16px;
+            margin-top: 10px;
+            border-radius: 10px;
+            padding: 10px 20px;
+            background-color: #ffbb33;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #ff8800;
+        }
+        .score, .timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 1px 1px 3px #000000;
+            margin: 10px 0;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            border: 3px solid #8c8c8c;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            z-index: 1000;
+        }
+        .popup img {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+        .popup p {
+            font-size: 20px;
+            color: #333333;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <h1>¡Aprendamos Matemáticas con Mapaches!</h1>
+
+    <!-- Imagen del mapache reducido -->
+    <img src="mapache.png" alt="Mapache" class="mapache">
+
+    <div class="timer" id="timer">Tiempo restante: 5:00</div>
+    <div class="score" id="score">Puntaje: 0</div>
+    <div class="card">
+        <div class="problem" id="problem">Cargando...</div>
+        <input type="number" id="answer" placeholder="Tu respuesta">
+        <br><br>
+        <button onclick="checkAnswer()">Verificar</button>
+    </div>
+
+    <!-- Pop-up y superposición -->
+    <div class="overlay" id="overlay"></div>
+    <div class="popup" id="popup">
+        <img id="popupImage" src="" alt="Imagen del Mapache">
+        <p id="popupMessage"></p>
+        <button onclick="closePopup()">Cerrar</button>
+    </div>
+
+    <script>
+        let num1, num2, operation, result;
+        let score = 0;
+        let timeLeft = 300;
+
+        function generateProblem() {
+            num1 = Math.floor(Math.random() * 10);
+            num2 = Math.floor(Math.random() * 10);
+            operation = Math.random() > 0.5 ? '+' : '-';
+            if (operation === '-' && num1 < num2) {
+                [num1, num2] = [num2, num1];
+            }
+            result = operation === '+' ? num1 + num2 : num1 - num2;
+            document.getElementById('problem').innerText = `${num1} ${operation} ${num2} = ?`;
+            document.getElementById('answer').value = '';
+        }
+
+        function updateScore() {
+            document.getElementById('score').innerText = `Puntaje: ${score}`;
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer').innerText = `Tiempo restante: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        function startTimer() {
+            setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimer();
+                } else {
+                    alert("¡El tiempo se acabó!");
+                }
+            }, 1000);
+        }
+
+        function showPopup(imageSrc, message) {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            document.getElementById('popupImage').src = imageSrc;
+            document.getElementById('popupMessage').innerText = message;
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            if (userAnswer === result) {
+                score++;
+                updateScore();
+                showPopup('mapache_festejando.png', '¡Correcto! 🦝');
+            } else {
+                score--;
+                updateScore();
+                showPopup('mapache_triste.png', '¡Incorrecto! 🐾');
+            }
+            generateProblem();
+        }
+
+        window.onload = function () {
+            generateProblem();
+            updateScore();
+            updateTimer();
+            startTimer();
+        };
+    </script>
+</body>
+</html>
